@@ -35,12 +35,12 @@ using namespace std;
 struct Options {
   /** Input file name. */
   string inputFile = "";
-  /** Output file name. */
-  string outputFile = "";
   /** Input file format ("mtx", "coo", "edgelist", "csv", "tsv"). */
   string inputFormat = "mtx";
-  /** Output file format ("mtx", "coo", "edgelist", "csv", "tsv"). */
-  string outputFormat = "mtx";
+  /** Community membership file name. */
+  string membershipFile = "";
+  /** Whether the community membership file is keyed. */
+  bool membershipKeyed = false;
   /** Whether the input graph is weighted. */
   bool weighted = false;
   /** Whether the input graph is symmetric. */
@@ -58,16 +58,14 @@ struct Options {
  */
 inline Options parseOptions(int argc, char **argv) {
   Options o;
-  o.inputFormat  = "mtx";
-  o.outputFormat = "mtx";
   for (int i=1; i<argc; ++i) {
     string k = argv[i];
     if (k=="") continue;
     else if (k=="-h" || k=="--help") o.help = true;
     else if (k=="-i" || k=="--input")  o.inputFile  = argv[++i];
-    else if (k=="-o" || k=="--output") o.outputFile = argv[++i];
+    else if (k=="-m" || k=="--membership") o.membershipFile  = argv[++i];
     else if (k=="-f" || k=="--input-format")  o.inputFormat  = argv[++i];
-    else if (k=="-g" || k=="--output-format") o.outputFormat = argv[++i];
+    else if (k=="-k" || k=="--membership-keyed") o.membershipKeyed = true;
     else if (k=="-w" || k=="--weighted")  o.weighted  = true;
     else if (k=="-s" || k=="--symmetric") o.symmetric = true;
     else {
@@ -88,13 +86,13 @@ inline void showHelp(const char *name) {
   fprintf(stderr, "Convert a directed graph to an undirected graph.\n\n");
   fprintf(stderr, "Usage: %s [options]\n", name);
   fprintf(stderr, "Options:\n");
-  fprintf(stderr, "  -h, --help                    Show this help message.\n");
-  fprintf(stderr, "  -i, --input <file>            Input file name.\n");
-  fprintf(stderr, "  -o, --output <file>           Output file name.\n");
-  fprintf(stderr, "  -f, --input-format <format>   Input file format.\n");
-  fprintf(stderr, "  -g, --output-format <format>  Output file format.\n");
-  fprintf(stderr, "  -w, --weighted                Input graph is weighted.\n");
-  fprintf(stderr, "  -s, --symmetric               Input graph is symmetric.\n");
+  fprintf(stderr, "  -h, --help                   Show this help message.\n");
+  fprintf(stderr, "  -i, --input <file>           Input file name.\n");
+  fprintf(stderr, "  -f, --input-format <format>  Input file format.\n");
+  fprintf(stderr, "  -m, --membership <file>      Community membership file name.\n");
+  fprintf(stderr, "  -k, --membership-keyed       Community membership file is keyed.\n");
+  fprintf(stderr, "  -w, --weighted               Input graph is weighted.\n");
+  fprintf(stderr, "  -s, --symmetric              Input graph is symmetric.\n");
   fprintf(stderr, "\n");
   fprintf(stderr, "Supported formats:\n");
   fprintf(stderr, "  mtx       Matrix Market format (default).\n");
@@ -122,10 +120,9 @@ inline bool validateFormat(const string &format) {
  * @returns true if valid
  */
 inline bool validateOptions(const Options &o) {
-  if (o.inputFile.empty())  { fprintf(stderr, "Input file is not specified.\n");  return false; }
-  if (o.outputFile.empty()) { fprintf(stderr, "Output file is not specified.\n"); return false; }
+  if (o.inputFile.empty())      { fprintf(stderr, "Input file is not specified.\n");  return false; }
+  if (o.membershipFile.empty()) { fprintf(stderr, "Community membership file is not specified.\n"); return false; }
   if (!validateFormat(o.inputFormat))  { fprintf(stderr, "Unknown input format: %s\n",  o.inputFormat.c_str());  return false; }
-  if (!validateFormat(o.outputFormat)) { fprintf(stderr, "Unknown output format: %s\n", o.outputFormat.c_str()); return false; }
   return true;
 }
 
@@ -144,25 +141,6 @@ inline void readGraphW(G& a, const string& file, const string& format, bool symm
   else if (format=="coo") readGraphCooFormatOmpW<WEIGHTED>(a, stream, symmetric);
   else if (format=="edgelist" || format=="csv" || format=="tsv") readGraphEdgelistFormatOmpW<WEIGHTED>(a, stream, symmetric);
   else throw std::runtime_error("Unknown input format: " + format);
-}
-
-
-/**
- * Write the specified output graph.
- * @param x graph to write (input)
- * @param file output file name
- * @param format output file format
- * @param symmetric is graph symmetric?
- */
-template <bool WEIGHTED=false, class G>
-inline void writeGraph(const G& x, const string& file, const string& format, bool symmetric=false) {
-  ofstream stream(file.c_str());
-  if (format=="mtx") writeGraphMtxFormatOmp<WEIGHTED>(stream, x, symmetric);
-  else if (format=="coo") writeGraphCooFormatOmp<WEIGHTED>(stream, x, symmetric);
-  else if (format=="edgelist") writeGraphEdgelistFormatOmp<WEIGHTED>(stream, x, symmetric);
-  else if (format=="csv") writeGraphEdgelistFormatOmp<WEIGHTED>(stream, x, symmetric, ',');
-  else if (format=="tsv") writeGraphEdgelistFormatOmp<WEIGHTED>(stream, x, symmetric, '\t');
-  else throw std::runtime_error("Unknown output format: " + format);
 }
 
 
@@ -190,11 +168,22 @@ int main(int argc, char **argv) {
     x = symmetrizeOmp(x);
     print(x); printf(" (symmetrize)\n");
   }
-  // Write undirected graph.
-  printf("Writing undirected graph %s ...\n", o.outputFile.c_str());
-  if (o.weighted) writeGraph<true> (x, o.outputFile, o.outputFormat, true);
-  else            writeGraph<false>(x, o.outputFile, o.outputFormat, true);
-  printf("Done.\n\n");
+  // Read community membership.
+  vector<K> membership(x.span());
+  printf("Reading community membership %s ...\n", o.membershipFile.c_str());
+  if (o.membershipKeyed) readVectorW<true> (membership, ifstream(o.membershipFile.c_str()));
+  else                   readVectorW<false>(membership, ifstream(o.membershipFile.c_str()));
+  // Count the number of disconnected communities.
+  auto fc = [&](auto u) { return membership[u]; };
+  size_t ncom = communities(x, membership).size();
+  size_t ndis = countValue(communitiesDisconnectedOmp(x, membership), char(1));
+  printf("Number of communities: %zu\n", ncom);
+  printf("Number of disconnected communities: %zu\n", ndis);
+  // Compute modularity.
+  double M    = edgeWeightOmp(x) / 2;
+  double modl = modularityBy(x, fc, M);
+  printf("Modularity: %f\n", modl);
+  printf("\n");
   return 0;
 }
 #pragma endregion

@@ -436,4 +436,34 @@ inline void writeGraphMtxFormatOmp(ostream& stream, const G& x, bool symmetric=f
 }
 #endif
 #pragma endregion
+
+
+
+
+#pragma region READ VECTOR
+/**
+ * Read a vector from a stream.
+ * @param a output vector
+ * @param stream input stream
+ */
+template <bool KEYED=false, class T>
+inline void readVectorW(vector<T>& a, istream& stream) {
+  string line;
+  a.clear();
+  while (getline(stream, line)) {
+    replace(line.begin(), line.end(), ',', ' ');
+    istringstream lstream(line);
+    size_t i = 0; T x = T();
+    if (KEYED) {
+      lstream >> i >> x;
+      a.resize(max(a.size(), i+1));
+      a[i] = x;
+    }
+    else {
+      lstream >> x;
+      a.push_back(x);
+    }
+  }
+}
+#pragma endregion
 #pragma endregion
