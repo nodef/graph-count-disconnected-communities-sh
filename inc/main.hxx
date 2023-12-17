@@ -7,3 +7,4 @@
 #include "io.hxx"
 #include "duplicate.hxx"
 #include "symmetrize.hxx"
+#include "properties.hxx"
