@@ -174,9 +174,10 @@ int main(int argc, char **argv) {
   }
   // Read community membership.
   vector<K> membership(x.span());
+  ifstream membershipStream(o.membershipFile.c_str());
   printf("Reading community membership %s ...\n", o.membershipFile.c_str());
-  if (o.membershipKeyed) readVectorW<true> (membership, ifstream(o.membershipFile.c_str()), o.membershipStart);
-  else                   readVectorW<false>(membership, ifstream(o.membershipFile.c_str()), o.membershipStart);
+  if (o.membershipKeyed) readVectorW<true> (membership, membershipStream, o.membershipStart);
+  else                   readVectorW<false>(membership, membershipStream, o.membershipStart);
   // Count the number of disconnected communities.
   auto fc = [&](auto u) { return membership[u]; };
   size_t ncom = communities(x, membership).size();
