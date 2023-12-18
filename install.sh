@@ -35,11 +35,11 @@ fi
 
 # Install program.
 mkdir -p "$PREFIX/bin"
-echo "Compiling graph-make-undirected ..."
+echo "Compiling graph-count-disconnected-communities ..."
 DOWNLOAD=0 RUN=0 ./main.sh
 echo "Done."
 printf "\n"
-echo "Installing graph-make-undirected ..."
-mv a.out "$PREFIX/bin/graph-make-undirected"
+echo "Installing graph-count-disconnected-communities ..."
+mv a.out "$PREFIX/bin/graph-count-disconnected-communities"
 echo "Done."
 printf "\n"

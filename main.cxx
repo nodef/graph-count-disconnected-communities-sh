@@ -85,8 +85,8 @@ inline Options parseOptions(int argc, char **argv) {
  * @param name program name
  */
 inline void showHelp(const char *name) {
-  fprintf(stderr, "graph-make-undirected:\n");
-  fprintf(stderr, "Convert a directed graph to an undirected graph.\n\n");
+  fprintf(stderr, "graph-count-disconnected-communities:\n");
+  fprintf(stderr, "Count the number of disconnected communities in a graph, for the given community membership of each vertex.\n\n");
   fprintf(stderr, "Usage: %s [options]\n", name);
   fprintf(stderr, "Options:\n");
   fprintf(stderr, "  -h, --help                   Show this help message.\n");

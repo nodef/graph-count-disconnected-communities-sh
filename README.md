@@ -1,14 +1,14 @@
-Convert a directed graph to an undirected graph.
+Count the number of disconnected communities in a graph, for the given community membership of each vertex.
 
 ```bash
-# Convert the web-Stanford directed graph to an undirected graph.
-$ graph-make-undirected -i web-Stanford.mtx -o web-Stanford-undirected.mtx
+# Count disconnected communities in the web-Stanford graph, from given the membership (keyed, starting from 0).
+$ graph-count-disconnected-communities -k -r 0 -i web-Stanford.mtx -m web-Stanford-membership.txt
 
-# Convert the web-Stanford directed graph to an undirected graph in CSV format.
-$ graph-make-undirected -i web-Stanford.mtx -o web-Stanford-undirected.tsv -f mtx -g csv
+# Count disconnected communities in the web-Stanford graph, from given the membership file (in TSV format).
+$ graph-count-disconnected-communities -k -r 0 -i web-Stanford.mtx -m web-Stanford-membership.tsv -f mtx
 
-# Convert the weighted vt2010 directed graph to an undirected graph.
-$ graph-make-undirected -i vt2010.mtx -o vt2010-undirected.mtx -w
+# Count disconnected communities in the weighted vt2010 graph, from given the membership file (in CSV format).
+$ graph-count-disconnected-communities -k -r 0 -i vt2010.mtx -m vt2010-membership.csv -w
 ```
 
 <br>
@@ -17,14 +17,15 @@ $ graph-make-undirected -i vt2010.mtx -o vt2010-undirected.mtx -w
 ### Usage
 
 ```bash
-$ graph-make-undirected [options]
+$ graph-count-disconnected-communities [options]
 
 Options:
   -h, --help                    Show this help message.
   -i, --input <file>            Input file name.
-  -o, --output <file>           Output file name.
   -f, --input-format <format>   Input file format.
-  -g, --output-format <format>  Output file format.
+  -m, --membership <file>       Community membership file name.
+  -k, --membership-keyed        Community membership file is keyed.
+  -r, --membership-start        Community membership start index.
   -w, --weighted                Input graph is weighted.
   -s, --symmetric               Input graph is symmetric.
 
@@ -42,8 +43,8 @@ Supported formats:
 ### Installation
 
 ```bash
-$ git clone https://github.com/ionicf/graph-make-undirected
-$ cd graph-make-undirected
+$ git clone https://github.com/ionicf/graph-count-disconnected-communities
+$ cd graph-count-disconnected-communities
 $ ./install.sh --prefix /usr/local
 ```
 

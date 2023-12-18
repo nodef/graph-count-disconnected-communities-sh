@@ -34,7 +34,7 @@ runTool() {
   opt3=""
   if [[ "$2" == "1" ]]; then opt2="-w"; fi
   if [[ "$3" == "1" ]]; then opt3="-s"; fi
-  stdbuf --output=L ./a.out -i "$1" -m "$1.membership" "$opt2" "$opt3" 2>&1 | tee -a "$out"
+  stdbuf --output=L ./a.out -i "$1" -m "$1.membership" -k -r 0 "$opt2" "$opt3" 2>&1 | tee -a "$out"
 }
 
 # Run tool on all graphs
