@@ -41,6 +41,8 @@ struct Options {
   string membershipFile = "";
   /** Whether the community membership file is keyed. */
   bool membershipKeyed = false;
+  /** Community membership start index. */
+  int membershipStart = 0;
   /** Whether the input graph is weighted. */
   bool weighted = false;
   /** Whether the input graph is symmetric. */
@@ -66,6 +68,7 @@ inline Options parseOptions(int argc, char **argv) {
     else if (k=="-m" || k=="--membership") o.membershipFile  = argv[++i];
     else if (k=="-f" || k=="--input-format")  o.inputFormat  = argv[++i];
     else if (k=="-k" || k=="--membership-keyed") o.membershipKeyed = true;
+    else if (k=="-r" || k=="--membership-start") o.membershipStart = atoi(argv[++i]);
     else if (k=="-w" || k=="--weighted")  o.weighted  = true;
     else if (k=="-s" || k=="--symmetric") o.symmetric = true;
     else {
@@ -91,6 +94,7 @@ inline void showHelp(const char *name) {
   fprintf(stderr, "  -f, --input-format <format>  Input file format.\n");
   fprintf(stderr, "  -m, --membership <file>      Community membership file name.\n");
   fprintf(stderr, "  -k, --membership-keyed       Community membership file is keyed.\n");
+  fprintf(stderr, "  -r, --membership-start       Community membership start index.\n");
   fprintf(stderr, "  -w, --weighted               Input graph is weighted.\n");
   fprintf(stderr, "  -s, --symmetric              Input graph is symmetric.\n");
   fprintf(stderr, "\n");
@@ -171,8 +175,8 @@ int main(int argc, char **argv) {
   // Read community membership.
   vector<K> membership(x.span());
   printf("Reading community membership %s ...\n", o.membershipFile.c_str());
-  if (o.membershipKeyed) readVectorW<true> (membership, ifstream(o.membershipFile.c_str()));
-  else                   readVectorW<false>(membership, ifstream(o.membershipFile.c_str()));
+  if (o.membershipKeyed) readVectorW<true> (membership, ifstream(o.membershipFile.c_str()), o.membershipStart);
+  else                   readVectorW<false>(membership, ifstream(o.membershipFile.c_str()), o.membershipStart);
   // Count the number of disconnected communities.
   auto fc = [&](auto u) { return membership[u]; };
   size_t ncom = communities(x, membership).size();
