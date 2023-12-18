@@ -184,10 +184,6 @@ int main(int argc, char **argv) {
   size_t ndis = countValue(communitiesDisconnectedOmp(x, membership), char(1));
   printf("Number of communities: %zu\n", ncom);
   printf("Number of disconnected communities: %zu\n", ndis);
-  // Compute modularity.
-  double M    = edgeWeightOmp(x) / 2;
-  double modl = modularityBy(x, fc, M);
-  printf("Modularity: %f\n", modl);
   printf("\n");
   return 0;
 }
