@@ -54,3 +54,4 @@ $ ./install.sh --prefix /usr/local
 
 [![](https://img.youtube.com/vi/yqO7wVBTuLw/maxresdefault.jpg)](https://www.youtube.com/watch?v=yqO7wVBTuLw)<br>
 [![ORG](https://img.shields.io/badge/org-puzzlef-green?logo=Org)](https://puzzlef.github.io)
+[![DOI](https://zenodo.org/badge/732612024.svg)](https://zenodo.org/doi/10.5281/zenodo.10403722)
