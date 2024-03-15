@@ -287,6 +287,7 @@ inline vector<K> communitySize(const G& x, const vector<K>& vcom) {
  */
 template <class G, class K>
 inline vector<K> communitySizeOmp(const G& x, const vector<K>& vcom) {
+  printf("Obtaining community sizes ...\n");
   size_t S = x.span();
   vector<K> a(S);
   #pragma omp parallel for schedule(static, 2048)
@@ -295,6 +296,10 @@ inline vector<K> communitySizeOmp(const G& x, const vector<K>& vcom) {
     K c = vcom[u];
     #pragma omp atomic
     ++a[c];
+  }
+  for (K c=0; c<S; ++c) {
+    if (a[c] < 10000) continue;
+    printf("- Community %d has %zu vertices\n", c, a[c]);
   }
   return a;
 }
@@ -380,6 +385,7 @@ inline vector<char> communitiesDisconnectedOmp(const G& x, const vector<K>& vcom
   size_t  S = x.span();
   int     T = omp_get_max_threads();
   auto coms = communitySizeOmp(x, vcom);
+  printf("Examining disconnected communities ...\n");
   vector<char> a(S), vis(S);
   vector2d<K>  us (T), vs(T);
   #pragma omp parallel
@@ -393,7 +399,10 @@ inline vector<char> communitiesDisconnectedOmp(const G& x, const vector<K>& vcom
       auto fp = [&](auto v, auto d) { ++reached; };
       us[t].clear(); vs[t].clear(); us[t].push_back(u);
       bfsVisitedForEachU(vis, us[t], vs[t], x, ft, fp);
-      if (reached < coms[c]) a[c] = 1;
+      if (reached < coms[c]) {
+        printf("- Community %d is disconnected (reached %zu/%zu vertices from vertex %d [degree=%d] only)\n", c, reached, coms[c], u, x.degree(u));
+        a[c] = 1;
+      }
       coms[c] = 0;
     }
   }
