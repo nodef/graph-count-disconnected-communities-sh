@@ -299,7 +299,7 @@ inline vector<K> communitySizeOmp(const G& x, const vector<K>& vcom) {
   }
   for (K c=0; c<S; ++c) {
     if (a[c] < 10000) continue;
-    printf("- Community %d has %zu vertices\n", c, a[c]);
+    printf("- Community %d has %d vertices\n", c, a[c]);
   }
   return a;
 }
@@ -400,7 +400,7 @@ inline vector<char> communitiesDisconnectedOmp(const G& x, const vector<K>& vcom
       us[t].clear(); vs[t].clear(); us[t].push_back(u);
       bfsVisitedForEachU(vis, us[t], vs[t], x, ft, fp);
       if (reached < coms[c]) {
-        printf("- Community %d is disconnected (reached %zu/%zu vertices from vertex %d [degree=%d] only)\n", c, reached, coms[c], u, x.degree(u));
+        printf("- Community %d is disconnected (reached %d/%d vertices from vertex %d [degree=%d] only)\n", c, reached, coms[c], u, K(x.degree(u)));
         a[c] = 1;
       }
       coms[c] = 0;
